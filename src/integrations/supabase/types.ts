@@ -14,7 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          last_carry_date: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+          last_carry_date?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          last_carry_date?: string | null
+        }
+        Relationships: []
+      }
+      task_groups: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          carried: boolean
+          completed: boolean
+          created_at: string
+          due_date: string
+          group_id: string
+          id: string
+          text: string
+          user_id: string
+        }
+        Insert: {
+          carried?: boolean
+          completed?: boolean
+          created_at?: string
+          due_date?: string
+          group_id: string
+          id?: string
+          text: string
+          user_id: string
+        }
+        Update: {
+          carried?: boolean
+          completed?: boolean
+          created_at?: string
+          due_date?: string
+          group_id?: string
+          id?: string
+          text?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "task_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
