@@ -14,8 +14,8 @@ export const generateToken = (res: Response, userId: string) => {
 
   res.cookie('jwt', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // cross-site setup if needed
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    secure: true,
+    sameSite: 'none',
+    maxAge: 30 * 24 * 60 * 60 * 1000,
   });
 };
