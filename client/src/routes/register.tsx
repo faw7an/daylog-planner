@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,15 +15,14 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loadingReg, setLoadingReg] = useState(false);
-  const navigate = useNavigate();
   const { toast } = useToast();
   const { user, loading, setUser } = useAuth();
 
   useEffect(() => {
     if (!loading && user) {
-      navigate({ to: "/dashboard", replace: true });
+      window.location.replace("/dashboard");
     }
-  }, [user, loading, navigate]);
+  }, [user, loading]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +32,7 @@ export default function Register() {
       const res = await api.post("/auth/register", { name, email, password });
       setUser(res.data);
       toast({ title: "Account created", description: "Welcome to Daylog!" });
-      navigate({ to: "/dashboard", replace: true });
+      window.location.replace("/dashboard");
     } catch (err: any) {
       toast({
         title: "Error registering",

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -8,17 +8,16 @@ export const Route = createFileRoute("/")({
 
 function IndexRedirect() {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (!loading) {
       if (user) {
-        navigate({ to: "/dashboard", replace: true });
+        window.location.replace("/dashboard");
       } else {
-        navigate({ to: "/login", replace: true });
+        window.location.replace("/login");
       }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-950">

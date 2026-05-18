@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,15 +14,14 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loadingLogin, setLoadingLogin] = useState(false);
-  const navigate = useNavigate();
   const { toast } = useToast();
   const { user, loading, setUser } = useAuth();
 
   useEffect(() => {
     if (!loading && user) {
-      navigate({ to: "/dashboard", replace: true });
+      window.location.replace("/dashboard");
     }
-  }, [user, loading, navigate]);
+  }, [user, loading]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +31,7 @@ export default function Login() {
       const res = await api.post("/auth/login", { email, password });
       setUser(res.data);
       toast({ title: "Signed in", description: "Welcome back!" });
-      navigate({ to: "/dashboard", replace: true });
+      window.location.replace("/dashboard");
     } catch (err: any) {
       toast({
         title: "Error signing in",

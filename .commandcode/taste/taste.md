@@ -16,3 +16,7 @@
 # typescript
 - In Express 5 with strict TypeScript, `req.params.id` returns `string | string[]` — always cast with `as string` before passing to ORM queries. Use `req.user!.id` (non-null assertion) after auth middleware since middleware guarantees user exists. Confidence: 0.70
 
+# pwa
+- For PWA on mobile: add `interactive-widget=resizes-content` and `viewport-fit=cover` to viewport meta tag, use `pb-24` on layout for fixed bottom nav, and use `env(safe-area-inset-bottom)` for notched device padding. Confidence: 0.70
+- In PWA standalone mode on iOS, avoid relying on `/auth/me` roundtrip after login — set user state directly from the login/register API response using a `setUser` function in the AuthContext. Confidence: 0.70
+
