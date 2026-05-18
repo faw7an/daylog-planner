@@ -68,9 +68,27 @@ function DashboardPage() {
       title: string;
       color: GroupColor;
     }) => {
-      await api.post("/tasks/groups", { title, color });
+      const res = await api.post("/tasks/groups", { title, color });
+      return res.data;
     },
-    onSuccess: () => {
+    onMutate: async ({ title, color }) => {
+      await qc.cancelQueries({ queryKey: ["tasks", "today"] });
+      const prev = qc.getQueryData<ApiGroup[]>(["tasks", "today"]);
+      qc.setQueryData<ApiGroup[]>(["tasks", "today"], (old) => [
+        ...(old || []),
+        {
+          id: "optimistic-group-" + Date.now(),
+          title,
+          color,
+          tasks: [],
+        },
+      ]);
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      qc.setQueryData(["tasks", "today"], ctx?.prev);
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["tasks", "today"] });
     },
   });

@@ -2,18 +2,29 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { ProfileSheet } from "./ProfileSheet";
 
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
+}
+
 export function AppHeader() {
   const { user, logout } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
   const date = new Date().toLocaleDateString("en-US", {
     weekday: "long",
-    day: "numeric",
     month: "long",
+    day: "numeric",
   });
 
-  const initial = user?.name
-    ? user.name.charAt(0).toUpperCase()
-    : user?.email?.charAt(0).toUpperCase() || "?";
+  const initial = user
+    ? (user.name || user.email).charAt(0).toUpperCase()
+    : "";
+
+  const displayName = user?.name
+    ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
+    : "there";
 
   async function handleLogout() {
     await logout();
@@ -22,10 +33,12 @@ export function AppHeader() {
 
   return (
     <>
-      <header className="flex items-center justify-between py-6">
+      <header className="flex items-center justify-between pt-10 pb-4">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight">Daylog</h1>
-          <p className="text-zinc-400 text-sm mt-1">{date}</p>
+          <h1 className="text-lg text-zinc-400 font-normal">
+            {getGreeting()}, <span className="text-white font-semibold">{displayName}</span>
+          </h1>
+          <p className="text-zinc-500 text-sm mt-1">{date}</p>
         </div>
 
         <button
@@ -33,7 +46,7 @@ export function AppHeader() {
           aria-label="Open profile"
           className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-white text-sm font-medium border border-white/10 hover:border-white/20 transition-colors"
         >
-          {initial}
+          {initial || "?"}
         </button>
       </header>
 

@@ -17,10 +17,14 @@ export function ProfileSheet({ open, onClose, onLogout }: Props) {
     : user?.email?.charAt(0).toUpperCase() || "?";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm md:items-center">
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm md:items-center"
+      onClick={onClose}
+    >
       <div
         className="w-full max-w-md rounded-t-2xl bg-card p-6 hairline md:rounded-2xl"
         style={{ paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Profile</h2>
