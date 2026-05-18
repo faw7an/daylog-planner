@@ -1,5 +1,6 @@
 import { X, LogOut, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useState, useEffect } from "react";
 
 interface Props {
   open: boolean;
@@ -9,8 +10,21 @@ interface Props {
 
 export function ProfileSheet({ open, onClose, onLogout }: Props) {
   const { user } = useAuth();
+  const [mounted, setMounted] = useState(false);
+  const [visible, setVisible] = useState(false);
 
-  if (!open) return null;
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      requestAnimationFrame(() => setVisible(true));
+    } else {
+      setVisible(false);
+      const timer = setTimeout(() => setMounted(false), 200);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
+
+  if (!mounted) return null;
 
   const initial = user?.name
     ? user.name.charAt(0).toUpperCase()
@@ -18,11 +32,11 @@ export function ProfileSheet({ open, onClose, onLogout }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm md:items-center"
+      className={`fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm md:items-center transition-opacity duration-200 ${visible ? "opacity-100" : "opacity-0"}`}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-t-2xl bg-card p-6 hairline md:rounded-2xl"
+        className={`w-full max-w-md rounded-t-2xl bg-card p-6 hairline md:rounded-2xl max-h-[90vh] overflow-y-auto transition-all duration-200 ${visible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
         style={{ paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
         onClick={(e) => e.stopPropagation()}
       >

@@ -17,7 +17,7 @@ console.log('CORS_ORIGIN:', process.env.CORS_ORIGIN);
 
 app.use(cors({
   origin: process.env.CORS_ORIGIN?.split(',') || (
-    isProduction ? true : ['http://localhost:8080', 'http://localhost:5173']
+    isProduction ? false : ['http://localhost:8080', 'http://localhost:5173']
   ),
   credentials: true,
 }));

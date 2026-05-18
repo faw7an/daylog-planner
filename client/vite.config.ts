@@ -50,14 +50,21 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
+            urlPattern: /^https?:\/\/.*\/api\/auth\/.*/i,
+            handler: 'NetworkOnly',
+          },
+          {
             urlPattern: /^https?:\/\/.*\/api\/.*/i,
-            handler: 'NetworkFirst',
+            handler: 'StaleWhileRevalidate',
+            method: 'GET',
             options: {
               cacheName: 'api-cache',
-              networkTimeoutSeconds: 5,
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 60,
+              },
+              cacheableResponse: {
+                statuses: [200],
               },
             },
           },

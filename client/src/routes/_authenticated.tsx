@@ -26,9 +26,9 @@ function AuthenticatedLayout() {
   const isHistory = routerState.location.pathname === "/history";
 
   return (
-    <div className="min-h-screen bg-zinc-950 pb-24">
+    <div className="min-h-screen bg-zinc-950 pb-24" style={{ paddingTop: "calc(2.5rem + env(safe-area-inset-top))" }}>
       <Outlet />
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-zinc-900 border-t border-white/10 px-6 pt-3 md:hidden" style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}>
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-zinc-900 border-t border-white/10 px-6 pt-3" style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}>
         <div className="flex items-center justify-around max-w-md mx-auto">
           <Link
             to="/dashboard"

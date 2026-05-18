@@ -33,7 +33,7 @@ export function AppHeader() {
 
   return (
     <>
-      <header className="flex items-center justify-between pt-10 pb-4">
+      <header className="flex items-center justify-between pb-4">
         <div>
           <h1 className="text-lg text-zinc-400 font-normal">
             {getGreeting()}, <span className="text-white font-semibold">{displayName}</span>

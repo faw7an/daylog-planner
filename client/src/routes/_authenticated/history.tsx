@@ -156,9 +156,7 @@ function HistoryPage() {
         </div>
 
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">
-            {isToday(selectedDate) ? "Today" : formatDate(selectedDate)}
-          </h2>
+          <span />
           {!isLoading && (
             <span className="text-sm text-muted-foreground">
               {completedCount} task{completedCount !== 1 ? "s" : ""} completed

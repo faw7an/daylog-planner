@@ -6,7 +6,13 @@ import { AuthProvider } from './hooks/useAuth';
 import { getRouter } from './router';
 import './styles.css';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 const router = getRouter();
 const rootElement = document.getElementById('app')!;
 

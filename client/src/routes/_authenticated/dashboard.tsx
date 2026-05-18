@@ -55,7 +55,6 @@ function DashboardPage() {
       const res = await api.get("/tasks/today");
       return res.data;
     },
-    retry: false,
   });
 
   const groups = apiGroups.map(mapGroup);
@@ -71,6 +70,7 @@ function DashboardPage() {
       const res = await api.post("/tasks/groups", { title, color });
       return res.data;
     },
+    retry: false,
     onMutate: async ({ title, color }) => {
       await qc.cancelQueries({ queryKey: ["tasks", "today"] });
       const prev = qc.getQueryData<ApiGroup[]>(["tasks", "today"]);
@@ -88,7 +88,7 @@ function DashboardPage() {
     onError: (_err, _vars, ctx) => {
       qc.setQueryData(["tasks", "today"], ctx?.prev);
     },
-    onSettled: () => {
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tasks", "today"] });
     },
   });
@@ -104,6 +104,7 @@ function DashboardPage() {
       const res = await api.post("/tasks", { groupId, title });
       return res.data;
     },
+    retry: false,
     onMutate: async ({ groupId, title }) => {
       await qc.cancelQueries({ queryKey: ["tasks", "today"] });
       const prev = qc.getQueryData<ApiGroup[]>(["tasks", "today"]);
@@ -130,7 +131,7 @@ function DashboardPage() {
     onError: (_err, _vars, ctx) => {
       qc.setQueryData(["tasks", "today"], ctx?.prev);
     },
-    onSettled: () => {
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tasks", "today"] });
     },
   });
@@ -145,6 +146,7 @@ function DashboardPage() {
     }) => {
       await api.patch(`/tasks/${taskId}`, { completed });
     },
+    retry: false,
     onMutate: async ({ taskId, completed }) => {
       await qc.cancelQueries({ queryKey: ["tasks", "today"] });
       const prev = qc.getQueryData<ApiGroup[]>(["tasks", "today"]);
@@ -161,7 +163,7 @@ function DashboardPage() {
     onError: (_err, _vars, ctx) => {
       qc.setQueryData(["tasks", "today"], ctx?.prev);
     },
-    onSettled: () => {
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tasks", "today"] });
     },
   });
