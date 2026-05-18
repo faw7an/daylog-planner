@@ -30,3 +30,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+.env
+daylog-spec.md
+.commandcode/taste
+AGENTS.md
+
