@@ -10,11 +10,15 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('CORS_ORIGIN:', process.env.CORS_ORIGIN);
 
 app.use(cors({
-  origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:8080', 'http://localhost:5173'],
+  origin: process.env.CORS_ORIGIN?.split(',') || (
+    isProduction ? true : ['http://localhost:8080', 'http://localhost:5173']
+  ),
   credentials: true,
 }));
 

@@ -31,7 +31,123 @@ The `index.html` links to `/favicon.ico` and `/apple-touch-icon.png` — but iOS
 - No `<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">` (just `href` without `sizes` attribute)
 - The `/icon-192.png` and `/icon-512.png` referenced in `manifest.json` need to be verifiable — the `public/` directory has them but iOS may ignore the manifest since it reads the HTML link tags
 
-## Fix Plan
+### 4. Server Cookie Settings — No Env-Aware Logic
+The server's `generateToken.ts` hardcodes cookie settings:
+```ts
+res.cookie('jwt', token, {
+  httpOnly: true,
+  secure: true,        // requires HTTPS — breaks local dev over plain HTTP
+  sameSite: 'none',    // required for cross-origin on Vercel
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+});
+```
+In local development (`NODE_ENV !== 'production'`), `secure: true` prevents the cookie from being sent over `http://localhost`. Also `sameSite: 'none'` requires `secure: true` per the spec, so both must change together for local dev.
+
+Additionally, there's no `COOKIE_DOMAIN` variable — in production, cookies may need a specific domain for cross-subdomain or cross-origin cookie sharing on Vercel/Netlify.
+
+## Fix Plan (Updated)
+
+### Fix 0: Environment-Aware Config (NEW — Prerequisite for All Other Fixes)
+
+**Create `client/.env.development`**:
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+**Update `client/.env`** (keep as template with commented production example):
+```env
+# Dev — .env.development takes priority in dev mode
+# Production: set VITE_API_URL to your deployed server
+# VITE_API_URL=https://your-server.vercel.app/api
+```
+
+**Update `server/src/utils/generateToken.ts`**:
+```ts
+export const generateToken = (res: Response, userId: string) => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET is not defined');
+
+  const token = jwt.sign({ id: userId }, secret, { expiresIn: '30d' });
+
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  res.cookie('jwt', token, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  });
+};
+```
+
+**Update `server/src/index.ts`** — add `NODE_ENV`-aware CORS fallback:
+```ts
+const isProduction = process.env.NODE_ENV === 'production';
+
+app.use(cors({
+  origin: process.env.CORS_ORIGIN?.split(',') || (
+    isProduction ? [] : ['http://localhost:8080', 'http://localhost:5173']
+  ),
+  credentials: true,
+}));
+```
+In production, CORS_ORIGIN must be explicitly set — no localhost fallback allowed.
+
+**Update `client/vite.config.ts`** — fix runtime caching URL pattern to use env var instead of hardcoded localhost:
+```ts
+runtimeCaching: [
+  {
+    urlPattern: /^https?:\/\/.*\/api\/.*/i,   // match any origin
+    handler: 'NetworkFirst',
+    // ...rest same
+  },
+],
+```
+
+Also add `manifest` generation that reads from env or uses the correct URL for production:
+```ts
+manifest: {
+  // ...
+  start_url: '/dashboard',
+  scope: '/',
+  // ...
+}
+```
+
+### Fix 1: iOS Login Stuck — Remove Race Condition
+
+(Same as before — use TanStack Router `navigate` with 100ms delay, remove duplicate `useEffect`)
+
+### Fix 2: Status Bar Theme Color
+
+(Same as before — `#7c3aed` → `#09090b`, `black-translucent` → `black`)
+
+### Fix 3: PWA Icons on iOS
+
+(Same as before — add `sizes="180x180"` to apple-touch-icon)
+
+## Updated Files to Change
+
+| File | Changes |
+|------|---------|
+| `server/src/utils/generateToken.ts` | `secure` and `sameSite` conditional on `NODE_ENV === 'production'` |
+| `server/src/index.ts` | Production-only CORS fallback guard |
+| `client/.env.development` | **NEW** — `VITE_API_URL=http://localhost:5000/api` |
+| `client/.env` | Clean up to template-only with comments |
+| `client/vite.config.ts` | Fix runtimeCaching URL pattern, fix theme_color |
+| `client/src/routes/login.tsx` | Remove `window.location.replace`, add `navigate` + 100ms delay, remove duplicate `useEffect` |
+| `client/src/routes/register.tsx` | Same as login.tsx |
+| `client/index.html` | Fix `theme-color`, `apple-mobile-web-app-status-bar-style`, add `sizes` to apple-touch-icon |
+| `client/public/manifest.json` | Change `theme_color`, `background_color` to `#09090b` |
+
+## Verification
+
+1. **Dev mode**: `cd server && npm run dev`, `cd client && npm run dev` → login works on `http://localhost:8080` (cookie sent over plain HTTP)
+2. **Production**: Deploy with `NODE_ENV=production`, `CORS_ORIGIN=https://your-client.vercel.app` → cookies use `secure: true`, `sameSite: 'none'`
+3. **Login fix**: On iOS Safari and PWA standalone, log in → see toast then navigate to `/dashboard` without bouncing back
+4. **Register fix**: Same test with registration flow
+5. **Status bar**: Browser/PWA chrome is dark (`#09090b`) matching the app, not purple
+6. **Icons**: Reinstall PWA on iOS → icon appears correctly on home screen
 
 ### Fix 1: iOS Login Stuck — Remove Race Condition
 

@@ -12,6 +12,7 @@
 # deployment
 - Add `vercel.json` with `{"rewrites": [{"source": "/(.*)", "destination": "/index.html"}]}` to client projects for SPA routing fallback on Vercel static hosting. Confidence: 0.70
 - For cross-domain cookie auth on Vercel: set `sameSite: 'none'` + `secure: true` on cookies, use exact `CORS_ORIGIN` env var matching the client URL, and `withCredentials: true` on the API client. Confidence: 0.75
+- Use NODE_ENV-conditional logic for server cookie and CORS settings: in development use `secure: false`, `sameSite: 'lax'`, and localhost CORS fallbacks; in production use `secure: true`, `sameSite: 'none'`, and explicit `CORS_ORIGIN`. Confidence: 0.70
 
 # typescript
 - In Express 5 with strict TypeScript, `req.params.id` returns `string | string[]` — always cast with `as string` before passing to ORM queries. Use `req.user!.id` (non-null assertion) after auth middleware since middleware guarantees user exists. Confidence: 0.70

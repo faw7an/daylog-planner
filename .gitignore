@@ -32,6 +32,8 @@ dist-ssr
 *.sw?
 
 .env
+.env.*
+!.env.example
 daylog-spec.md
 .commandcode/taste
 AGENTS.md

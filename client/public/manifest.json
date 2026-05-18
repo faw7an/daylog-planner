@@ -4,8 +4,8 @@
   "description": "Plan your day, carry forward what matters.",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#0f0f0f",
-  "theme_color": "#7c3aed",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
   "icons": [
     {
       "src": "/favicon.ico",

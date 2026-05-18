@@ -17,8 +17,8 @@ export default defineConfig({
         name: 'Daylog Planner',
         short_name: 'Daylog',
         description: 'Plan your day, carry forward what matters.',
-        theme_color: '#7c3aed',
-        background_color: '#0f0f0f',
+        theme_color: '#09090b',
+        background_color: '#09090b',
         display: 'standalone',
         start_url: '/dashboard',
         icons: [
@@ -50,7 +50,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /^https?:\/\/localhost:5000\/api\/.*/i,
+            urlPattern: /^https?:\/\/.*\/api\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
