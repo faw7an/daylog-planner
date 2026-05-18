@@ -4,9 +4,7 @@ import { users, taskGroups, tasks } from '../db/schema';
 import { eq, and, lt } from 'drizzle-orm';
 
 function getUserId(req: Request): string {
-  const id = req.user?.id;
-  if (!id) throw new Error('Unauthorized');
-  return id;
+  return req.user!.id;
 }
 
 export const createGroup = async (req: Request, res: Response): Promise<void> => {
