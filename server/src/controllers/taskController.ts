@@ -3,14 +3,15 @@ import { db } from '../db';
 import { users, taskGroups, tasks } from '../db/schema';
 import { eq, and, lt } from 'drizzle-orm';
 
+function getUserId(req: Request): string {
+  const id = req.user?.id;
+  if (!id) throw new Error('Unauthorized');
+  return id;
+}
+
 export const createGroup = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
-      res.status(401).json({ error: 'Not authorized' });
-      return;
-    }
-
+    const userId = getUserId(req);
     const { title, color } = req.body;
     if (!title) {
       res.status(400).json({ error: 'Title is required' });
@@ -19,11 +20,7 @@ export const createGroup = async (req: Request, res: Response): Promise<void> =>
 
     const [group] = await db
       .insert(taskGroups)
-      .values({
-        userId,
-        title,
-        color: color || 'purple',
-      })
+      .values({ userId, title, color: color || 'purple' })
       .returning();
 
     res.status(201).json(group);
@@ -35,12 +32,12 @@ export const createGroup = async (req: Request, res: Response): Promise<void> =>
 
 export const deleteGroup = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
-    const { id } = req.params;
+    const userId = getUserId(req);
+    const groupId = req.params.id as string;
 
     await db
       .delete(taskGroups)
-      .where(and(eq(taskGroups.id, id), eq(taskGroups.userId, userId)));
+      .where(and(eq(taskGroups.id, groupId), eq(taskGroups.userId, userId)));
 
     res.json({ success: true });
   } catch (error) {
@@ -51,12 +48,7 @@ export const deleteGroup = async (req: Request, res: Response): Promise<void> =>
 
 export const createTask = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
-      res.status(401).json({ error: 'Not authorized' });
-      return;
-    }
-
+    const userId = getUserId(req);
     const { groupId, title } = req.body;
     if (!groupId || !title) {
       res.status(400).json({ error: 'groupId and title are required' });
@@ -67,13 +59,7 @@ export const createTask = async (req: Request, res: Response): Promise<void> => 
 
     const [task] = await db
       .insert(tasks)
-      .values({
-        userId,
-        groupId,
-        title,
-        dueDate: today,
-        originalDate: today,
-      })
+      .values({ userId, groupId, title, dueDate: today, originalDate: today })
       .returning();
 
     res.status(201).json(task);
@@ -85,17 +71,14 @@ export const createTask = async (req: Request, res: Response): Promise<void> => 
 
 export const toggleTask = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
-    const { id } = req.params;
+    const userId = getUserId(req);
+    const taskId = req.params.id as string;
     const { completed } = req.body;
 
     const [task] = await db
       .update(tasks)
-      .set({
-        completed,
-        completedAt: completed ? new Date() : null,
-      })
-      .where(and(eq(tasks.id, id), eq(tasks.userId, userId)))
+      .set({ completed, completedAt: completed ? new Date() : null })
+      .where(and(eq(tasks.id, taskId), eq(tasks.userId, userId)))
       .returning();
 
     res.json(task);
@@ -107,12 +90,12 @@ export const toggleTask = async (req: Request, res: Response): Promise<void> => 
 
 export const deleteTask = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
-    const { id } = req.params;
+    const userId = getUserId(req);
+    const taskId = req.params.id as string;
 
     await db
       .delete(tasks)
-      .where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
+      .where(and(eq(tasks.id, taskId), eq(tasks.userId, userId)));
 
     res.json({ success: true });
   } catch (error) {
@@ -123,15 +106,9 @@ export const deleteTask = async (req: Request, res: Response): Promise<void> => 
 
 export const getToday = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
-      res.status(401).json({ error: 'Not authorized' });
-      return;
-    }
-
+    const userId = getUserId(req);
     const today = new Date().toISOString().slice(0, 10);
 
-    // Carry-forward: move incomplete past tasks to today
     const [profile] = await db
       .select()
       .from(users)
@@ -142,11 +119,7 @@ export const getToday = async (req: Request, res: Response): Promise<void> => {
         .update(tasks)
         .set({ dueDate: today, carried: true })
         .where(
-          and(
-            eq(tasks.userId, userId),
-            eq(tasks.completed, false),
-            lt(tasks.dueDate, today)
-          )
+          and(eq(tasks.userId, userId), eq(tasks.completed, false), lt(tasks.dueDate, today))
         );
 
       await db
@@ -155,16 +128,15 @@ export const getToday = async (req: Request, res: Response): Promise<void> => {
         .where(eq(users.id, userId));
     }
 
-    // Fetch today's groups with their tasks
     const groups = await db.query.taskGroups.findMany({
       where: eq(taskGroups.userId, userId),
       with: {
         tasks: {
           where: eq(tasks.dueDate, today),
-          orderBy: (tasks, { asc }) => [asc(tasks.createdAt)],
+          orderBy: (cols, { asc }) => [asc(cols.createdAt)],
         },
       },
-      orderBy: (taskGroups, { asc }) => [asc(taskGroups.createdAt)],
+      orderBy: (cols, { asc }) => [asc(cols.createdAt)],
     });
 
     res.json(groups);
@@ -176,26 +148,18 @@ export const getToday = async (req: Request, res: Response): Promise<void> => {
 
 export const getHistory = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
-      res.status(401).json({ error: 'Not authorized' });
-      return;
-    }
-
+    const userId = getUserId(req);
     const date = (req.query.date as string) || new Date().toISOString().slice(0, 10);
 
     const groups = await db.query.taskGroups.findMany({
       where: eq(taskGroups.userId, userId),
       with: {
         tasks: {
-          where: and(
-            eq(tasks.dueDate, date),
-            eq(tasks.completed, true)
-          ),
-          orderBy: (tasks, { asc }) => [asc(tasks.completedAt)],
+          where: and(eq(tasks.dueDate, date), eq(tasks.completed, true)),
+          orderBy: (cols, { asc }) => [asc(cols.completedAt)],
         },
       },
-      orderBy: (taskGroups, { asc }) => [asc(taskGroups.createdAt)],
+      orderBy: (cols, { asc }) => [asc(cols.createdAt)],
     });
 
     const filtered = groups.filter((g) => g.tasks.length > 0);
@@ -208,11 +172,7 @@ export const getHistory = async (req: Request, res: Response): Promise<void> => 
 
 export const getHistoryDates = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
-      res.status(401).json({ error: 'Not authorized' });
-      return;
-    }
+    const userId = getUserId(req);
 
     const dates = await db
       .select({ date: tasks.dueDate })

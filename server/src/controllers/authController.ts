@@ -98,8 +98,8 @@ export const logoutUser = (req: Request, res: Response): void => {
 // @access  Private
 export const getMe = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
+    const id = req.user?.id;
+    if (!id) {
       res.status(401).json({ error: 'User not found in request' });
       return;
     }
@@ -108,7 +108,7 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
       id: users.id,
       name: users.name,
       email: users.email,
-    }).from(users).where(eq(users.id, userId));
+    }).from(users).where(eq(users.id, id));
 
     if (userResult.length === 0) {
       res.status(404).json({ error: 'User not found' });
