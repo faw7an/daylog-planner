@@ -10,6 +10,7 @@ export interface User {
 interface AuthState {
   user: User | null;
   loading: boolean;
+  setUser: (user: User) => void;
   refetch: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -44,8 +45,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const updateUser = useCallback((u: User) => {
+    setUser(u);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, loading, refetch: fetchUser, logout }}>
+    <AuthContext.Provider value={{ user, loading, setUser: updateUser, refetch: fetchUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

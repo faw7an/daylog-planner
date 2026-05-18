@@ -17,7 +17,7 @@ export default function Register() {
   const [loadingReg, setLoadingReg] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, loading, refetch } = useAuth();
+  const { user, loading, setUser } = useAuth();
 
   useEffect(() => {
     if (!loading && user) {
@@ -30,8 +30,8 @@ export default function Register() {
     setLoadingReg(true);
 
     try {
-      await api.post("/auth/register", { name, email, password });
-      await refetch();
+      const res = await api.post("/auth/register", { name, email, password });
+      setUser(res.data);
       toast({ title: "Account created", description: "Welcome to Daylog!" });
       navigate({ to: "/dashboard", replace: true });
     } catch (err: any) {

@@ -16,7 +16,7 @@ export default function Login() {
   const [loadingLogin, setLoadingLogin] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, loading, refetch } = useAuth();
+  const { user, loading, setUser } = useAuth();
 
   useEffect(() => {
     if (!loading && user) {
@@ -29,8 +29,8 @@ export default function Login() {
     setLoadingLogin(true);
 
     try {
-      await api.post("/auth/login", { email, password });
-      await refetch();
+      const res = await api.post("/auth/login", { email, password });
+      setUser(res.data);
       toast({ title: "Signed in", description: "Welcome back!" });
       navigate({ to: "/dashboard", replace: true });
     } catch (err: any) {
